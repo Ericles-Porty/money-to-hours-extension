@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Preço em Horas",
+  "version": "1.0.0",
+  "description": "Converte preços em R$ para horas e minutos de trabalho. Saiba quanto tempo você trabalha para pagar cada produto.",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Preço em Horas"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

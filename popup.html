@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Preço em Horas</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      width: 340px;
+      background: #f5f7fa;
+      color: #2d3748;
+      font-size: 14px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1a73e8, #0d47a1);
+      color: white;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-icon { font-size: 22px; }
+    .header-title { font-size: 16px; font-weight: 700; letter-spacing: 0.2px; }
+    .header-sub { font-size: 11px; opacity: 0.85; margin-top: 1px; }
+
+    /* ── Toggle switch ── */
+    .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+    .toggle-label { font-size: 12px; font-weight: 600; opacity: 0.9; }
+    .switch { position: relative; width: 42px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.3);
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      left: 3px; top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.25s;
+    }
+    .switch input:checked + .slider { background: #4caf50; }
+    .switch input:checked + .slider::before { transform: translateX(18px); }
+
+    /* ── Body ── */
+    .body { padding: 18px; }
+
+    /* ── Salary type tabs ── */
+    .tab-group {
+      display: flex;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .tab {
+      flex: 1;
+      padding: 9px 12px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: #718096;
+      background: white;
+      border: none;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .tab:first-child { border-right: 1.5px solid #cbd5e0; }
+    .tab.active {
+      background: #1a73e8;
+      color: white;
+      font-weight: 600;
+    }
+
+    /* ── Fields ── */
+    .field { margin-bottom: 14px; }
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .input-wrap { position: relative; }
+    .input-prefix {
+      position: absolute;
+      left: 11px; top: 50%;
+      transform: translateY(-50%);
+      font-weight: 600;
+      color: #718096;
+      font-size: 14px;
+      pointer-events: none;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px 12px 10px 36px;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #2d3748;
+      background: white;
+      outline: none;
+      transition: border-color 0.2s;
+      appearance: textfield;
+    }
+    input[type="text"]:focus, input[type="number"]:focus {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.12);
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    /* field without prefix */
+    .no-prefix { padding-left: 12px !important; }
+
+    /* ── Hours field group ── */
+    #hoursGroup { margin-bottom: 14px; }
+
+    /* ── Hourly rate display ── */
+    .rate-display {
+      background: #ebf4ff;
+      border: 1.5px solid #bee3f8;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .rate-icon { font-size: 18px; }
+    .rate-text { font-size: 13px; color: #2b6cb0; font-weight: 600; }
+    .rate-text.empty { font-weight: 400; color: #90cdf4; font-style: italic; }
+
+    /* ── Save button ── */
+    .btn-save {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #1a73e8, #1558b0);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.3px;
+    }
+    .btn-save:hover { opacity: 0.92; }
+    .btn-save:active { transform: scale(0.98); }
+
+    /* ── Status message ── */
+    .status {
+      margin-top: 12px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      min-height: 0;
+      transition: all 0.2s;
+    }
+    .status.success { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+    .status.error   { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid #e2e8f0;
+      margin: 4px 0 16px;
+    }
+
+    /* ── Helper text ── */
+    .hint {
+      font-size: 11px;
+      color: #a0aec0;
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    /* ── Select ── */
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #2d3748;
+      background: white;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23718096' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+      transition: border-color 0.2s;
+    }
+    select:focus {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.12);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <span class="header-icon">⏱</span>
+      <div>
+        <div class="header-title">Preço em Horas</div>
+        <div class="header-sub">Quanto tempo você trabalha por isso?</div>
+      </div>
+    </div>
+    <div class="toggle-wrap">
+      <span class="toggle-label" id="toggleLabel">Ativo</span>
+      <label class="switch">
+        <input type="checkbox" id="enabledToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+
+    <!-- Tabs -->
+    <div class="tab-group">
+      <button class="tab active" id="tabMonthly">💼 Salário Mensal</button>
+      <button class="tab" id="tabHourly">🕐 Valor por Hora</button>
+    </div>
+
+    <!-- Salary input -->
+    <div class="field">
+      <label class="field-label" id="salaryLabel">Salário Mensal</label>
+      <div class="input-wrap">
+        <span class="input-prefix">R$</span>
+        <input type="text" id="salaryInput" placeholder="0,00" inputmode="decimal">
+      </div>
+    </div>
+
+    <!-- Hours per month (only for monthly mode) -->
+    <div class="field" id="hoursGroup">
+      <label class="field-label">Horas Trabalhadas por Mês</label>
+      <div class="input-wrap">
+        <input type="number" id="hoursInput" class="no-prefix" placeholder="176" min="1" max="744">
+      </div>
+      <p class="hint">Padrão: 176h/mês (8h/dia × 22 dias). Ajuste conforme sua jornada.</p>
+    </div>
+
+    <!-- Delay -->
+    <div class="field">
+      <label class="field-label">Delay de Processamento</label>
+      <select id="delaySelect">
+        <option value="0">Sem delay (imediato)</option>
+        <option value="500">0,5 segundo</option>
+        <option value="1000">1 segundo (recomendado)</option>
+        <option value="2000">2 segundos</option>
+        <option value="3000">3 segundos</option>
+        <option value="5000">5 segundos</option>
+      </select>
+      <p class="hint">Use delays maiores em sites que recarregam preços dinamicamente (ex.: Mercado Livre, Amazon).</p>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Hourly rate display -->
+    <div class="rate-display">
+      <span class="rate-icon">💡</span>
+      <span class="rate-text empty" id="rateDisplay">Informe seu salário acima</span>
+    </div>
+
+    <!-- Save button -->
+    <button class="btn-save" id="saveBtn">Salvar Configurações</button>
+
+    <!-- Status -->
+    <div class="status" id="statusMsg"></div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
