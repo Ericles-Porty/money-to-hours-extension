@@ -53,14 +53,19 @@ function parsePriceStr(s) {
  *   "R$ 419,90"                     → 419.90
  *   "419 reais"                     → 419.00
  *   "419 reais com 90 centavos"     → 419.90
+ *   "5799 reais"                    → 5799.00  (sem separador de milhar)
+ *   "5.799 reais"                   → 5799.00  (com separador de milhar)
  */
 function parsePriceFromText(text) {
   if (!text) return 0;
   PRICE_RE.lastIndex = 0;
   const m1 = PRICE_RE.exec(text);
   if (m1) return parsePriceStr(m1[1]);
+  // Matches formatted numbers (e.g. "5.799") OR bare integers (e.g. "5799").
+  // Using alternation with the formatted form first ensures "5.799 reais" is
+  // captured whole rather than partially (avoids matching "799" inside "5799").
   const m2 = text.match(
-    /(\d{1,3}(?:[.\s]\d{3})*)\s*reais?(?:\s+com\s+(\d{1,2})\s*centavos?)?/i,
+    /((?:\d{1,3}(?:[.\s]\d{3})+|\d+))\s*reais?(?:\s+com\s+(\d{1,2})\s*centavos?)?/i,
   );
   if (m2) {
     return parseInt(m2[1].replace(/[.\s]/g, '')) + (m2[2] ? parseInt(m2[2]) / 100 : 0);
@@ -206,9 +211,11 @@ const SITE_ADAPTERS = [
       const fromAria = parsePriceFromText(el.getAttribute('aria-label') || '');
       if (fromAria) return fromAria;
 
-      // Fallback: reconstruct from Andes-specific child spans
-      const frac  = el.querySelector('.andes-money-amount__fraction');
-      const cents = el.querySelector('.andes-money-amount__cents');
+      // Fallback: reconstruct from Andes-specific DIRECT child spans.
+      // :scope > prevents picking up values from nested money-amount elements
+      // (e.g. an installment price of R$999 nested inside a R$5.799 container).
+      const frac  = el.querySelector(':scope > .andes-money-amount__fraction');
+      const cents = el.querySelector(':scope > .andes-money-amount__cents');
       if (!frac) return 0;
       return (parseInt(frac.textContent.replace(/\D/g, '')) || 0)
            + (cents ? (parseInt(cents.textContent.replace(/\D/g, '')) || 0) / 100 : 0);
